@@ -1,0 +1,10 @@
+web:
+  listen: 7537
+  cookiekey: xlp:sess
+  keys:
+    - 0b3afbf6950d6e5c52587c9fa984d0ba2f6c15b2deefb2c8
+    - 44d8c09d39793cf13eb130ba7c3778a61878df77dbbc7371
+    - 593baf95a5d8cbc84476434a3b8247427a5035b067c39479
+
+db:
+  uri: mongodb://localhost/xlp

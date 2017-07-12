@@ -1,0 +1,21 @@
+{
+  "name": "xlp-platform",
+  "version": "0.0.1",
+  "description": "Platform for XLP conferences",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node main.js"
+  },
+  "author": "Liu Xiaoyi <circuitcoder0@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "js-yaml": "^3.8.4",
+    "koa": "^2.3.0",
+    "koa-bodyparser": "^4.2.0",
+    "koa-router": "^7.2.1",
+    "koa-session": "^5.4.0",
+    "mongoose": "^4.11.1",
+    "socket.io": "^2.0.3"
+  }
+}
