@@ -4,18 +4,24 @@
   "description": "Platform for XLP conferences",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node main.js"
+    "test": "echo \"No test command specified\" && exit -1",
+    "start": "node main.js",
+    "seed": "node seed.js"
   },
   "author": "Liu Xiaoyi <circuitcoder0@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "busboy": "^0.2.14",
+    "dev-null": "^0.1.1",
     "js-yaml": "^3.8.4",
+    "kcors": "^2.2.1",
     "koa": "^2.3.0",
     "koa-bodyparser": "^4.2.0",
     "koa-router": "^7.2.1",
     "koa-session": "^5.4.0",
+    "koa-static": "^4.0.1",
     "mongoose": "^4.11.1",
     "socket.io": "^2.0.3"
-  }
+  },
+  "devDependencies": {}
 }

@@ -8,3 +8,20 @@ web:
 
 db:
   uri: mongodb://localhost/xlp
+
+file:
+  store: ./store
+  pagelen: 10
+
+article:
+  pagelen: 10
+  pinnedlen: 10
+  officials:
+    - key1
+    - key2
+
+item:
+  pagelen: 10
+  officials:
+    - key1
+    - key2

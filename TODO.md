@@ -1,0 +1,3 @@
+- Add lean() if possible
+- Fix: || ''
+- setting payment pass

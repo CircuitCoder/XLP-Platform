@@ -7,6 +7,28 @@ const crypto = require('crypto');
 const util = require('util');
 const randomBytes = util.promisify(crypto.randomBytes);
 
+const Group = mongoose.model('Group', {
+  balance: {
+    type: Number,
+    required: true,
+  },
+
+  pass: {
+    type: String,
+    required: true,
+  },
+
+  name: {
+    type: String,
+    required: true,
+  },
+
+  avatar: {
+    type: ObjectId,
+    ref: 'File',
+  }
+})
+
 const UserSchema = new Schema({
   _id: String,
 
@@ -25,25 +47,28 @@ const UserSchema = new Schema({
     required: true,
   },
 
-  isGroup: {
-    type: Boolean,
-    required: true,
-  },
-
-  balance: Number,
-
-  /* For users */
-
   group: {
-    type: String, 
-    ref: 'User',
+    type: ObjectId, 
+    ref: 'Group',
   },
 
   grants: {
-    message: Boolean,
-    transfer: Boolean,
-    sell: Boolean,
+    admin: { type: Boolean, defualt: true },
+    message: { type: Boolean, defualt: true },
+    transfer: { type: Boolean, defualt: true },
+    sell: { type: Boolean, defualt: true },
+    publish: { type: Boolean, defualt: true },
   },
+
+  title: {
+    type: String,
+    defaults: '成员',
+  },
+
+  avatar: {
+    type: ObjectId,
+    ref: 'File',
+  }
 });
 
 UserSchema.methods.setPasswd = async function(unhashed) {
@@ -61,15 +86,35 @@ const User = mongoose.model('User', UserSchema);
 
 const MessageSchema = new Schema({
   from: {
-    type: String,
-    ref: 'User',
-    required: true,
+    kind: {
+      type: String,
+      enum: [
+        'User',
+        'Group',
+      ],
+      required: true,
+    },
+    user: {
+      type: String,
+      refPath: 'from.kind',
+      required: true,
+    }
   },
 
   to: {
-    type: String,
-    ref: 'User',
-    required: true,
+    kind: {
+      type: String,
+      enum: [
+        'User',
+        'Group',
+      ],
+      required: true,
+    },
+    user: {
+      type: String,
+      refPath: 'to.kind',
+      required: true,
+    }
   },
 
   type: {
@@ -79,15 +124,20 @@ const MessageSchema = new Schema({
       'transfer',
       'file',
       'text',
+      'purchase',
     ],
   },
 
   text: String,
-  fileRef: {
+  file: {
     type: ObjectId,
     ref: 'File',
   },
-  transQTY: Number,
+  purchase: {
+    type: ObjectId,
+    ref: 'Purchase',
+  },
+  qty: Number,
   
   time: {
     type: Date,
@@ -96,10 +146,11 @@ const MessageSchema = new Schema({
 });
 
 MessageSchema.index({
-  from: 'hashed',
-  to: 'hashed',
-  text: 'text',
   time: -1,
+});
+
+MessageSchema.index({
+  text: 'text',
 });
 
 MessageSchema.index({
@@ -110,9 +161,9 @@ MessageSchema.index({
 const Message = mongoose.model('Message', MessageSchema);
 
 const ItemSchema = new Schema({
-  owner: {
-    type: String,
-    ref: 'User',
+  group: {
+    type: ObjectId,
+    ref: 'Group',
     required: true,
   },
 
@@ -121,12 +172,11 @@ const ItemSchema = new Schema({
     required: true,
   },
   
-  desc: {
-    type: String,
-    required: true,
-  },
+  desc: String,
 
   left: Number,
+  
+  price: Number,
 
   pics: [{
     type: ObjectId,
@@ -146,17 +196,57 @@ ItemSchema.index({
 
 const Item = mongoose.model('Item', ItemSchema);
 
+const Purchase = mongoose.model('Purchase', {
+  group: {
+    type: ObjectId,
+    ref: 'Group',
+    required: true,
+  },
+
+  from: {
+    type: ObjectId,
+    ref: 'Group',
+    required: true,
+  },
+
+  items: [{
+    item: {
+      type: ObjectId,
+      ref: 'Item',
+      required: true,
+    },
+    qty: Number,
+  }],
+
+  time: {
+    type: Date,
+    required: true,
+  },
+
+  price: {
+    type: Number,
+    required: true,
+  },
+
+  state: {
+    type: String,
+    required: true,
+    enum: ['pending', 'completed', 'cancelled'],
+    default: 'pending',
+  },
+});
+
 const FileSchema = new Schema({
-  owner: {
+  user: {
     type: String,
     ref: 'User',
     required: true,
   },
 
-  allowed: [{
+  from: {
     type: String,
     ref: 'User',
-  }],
+  },
 
   name: {
     type: String,
@@ -168,14 +258,17 @@ const FileSchema = new Schema({
     required: true,
   },
 
-  time: {
-    type: Date,
-    required: true,
-  },
-
   path: {
     type: String,
     required: true,
+  },
+
+  time: Date,
+
+  public: {
+    type: Boolean,
+    required: true,
+    default: false,
   },
 });
 
@@ -184,10 +277,19 @@ FileSchema.index({
   time: -1,
 });
 
+FileSchema.index({
+  time: -1,
+});
+
 const File = mongoose.model('File', FileSchema);
 
 const ArticleSchema = new Schema({
-  /* Must be posted by admin */
+  group: {
+    type: ObjectId,
+    ref: 'Group',
+    required: true,
+  },
+
   time: {
     type: Date,
     required: true,
@@ -205,6 +307,10 @@ const ArticleSchema = new Schema({
 });
 
 ArticleSchema.index({
+  time: -1,
+});
+
+ArticleSchema.index({
   title: 'text',
   content: 'text',
 }, {
@@ -212,6 +318,10 @@ ArticleSchema.index({
     title: 10,
     content: 5,
   }
+});
+
+ArticleSchema.index({
+  group: 'hashed',
 });
 
 const Article = mongoose.model('Article', ArticleSchema);
@@ -228,10 +338,12 @@ const Session = mongoose.model('Session', {
 });
 
 module.exports = {
+  Group,
   User,
   Message,
   Item,
   File,
   Article,
   Session,
+  Purchase,
 };
