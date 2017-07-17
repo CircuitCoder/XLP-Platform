@@ -13,10 +13,7 @@ const Group = mongoose.model('Group', {
     required: true,
   },
 
-  pass: {
-    type: String,
-    required: true,
-  },
+  pass: String,
 
   name: {
     type: String,
@@ -185,13 +182,17 @@ const ItemSchema = new Schema({
 });
 
 ItemSchema.index({
-  title: 'text',
+  name: 'text',
   desc: 'text',
 }, {
   weights: {
-    title: 10,
+    name: 10,
     desc: 5,
   }
+});
+
+ItemSchema.index({
+  name: 1,
 });
 
 const Item = mongoose.model('Item', ItemSchema);

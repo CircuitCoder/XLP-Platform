@@ -15,9 +15,9 @@ router.get('/', async ctx => {
   const criteria = { };
   if(official) criteria.group = { $in: config.item.officials };
 
-  if(!all) criteria.left = { $not: 0 };
+  if(!all) criteria.left = { $ne: 0 };
 
-  if(serach) criteria['$text'] = { $search: search };
+  if(search) criteria['$text'] = { $search: search };
 
   const skip = (page - 1) * config.item.pagelen;
   const limit = config.item.pagelen;
@@ -28,13 +28,15 @@ router.get('/', async ctx => {
     price: 1,
     'pics.0': 1,
   })
-  .sort({ time: -1, })
+  .sort({ name: 1, })
   .skip(skip)
   .limit(limit)
   .lean()
   .exec();
 
-  return ctx.body = items.toObject();
+  const count = await Item.count(criteria);
+
+  return ctx.body = { items, pages: Math.ceil(count / config.item.pagelen) };
 });
 
 router.post('/', async ctx => {

@@ -1,4 +1,4 @@
-const config = require('./config');
+const config = require('../config');
 const process = require('process');
 const mongoose = require('mongoose');
 
@@ -6,7 +6,7 @@ const { ObjectId } = mongoose.Types;
 
 mongoose.Promise = global.Promise;
 
-const { Group, User } = require('./db');
+const { Group, User } = require('../db');
 
 async function seed() {
   await mongoose.connect(config.db.uri, {
