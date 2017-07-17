@@ -36,7 +36,7 @@ router.post('/', async ctx => {
   } catch(e) {
     return ctx.body = {
       success: false,
-      err: e
+      err: e.err,
     };
   }
 
