@@ -26,6 +26,7 @@ router.get('/', async ctx => {
     _id: 1,
     name: 1,
     price: 1,
+    left: 1,
     'pics.0': 1,
   })
   .sort({ name: 1, })
