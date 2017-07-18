@@ -14,7 +14,7 @@ mongoose.connect(config.db.uri, {
     const i = new Item({
       name: items[itemobj].name,
       price: items[itemobj].price,
-      left: 20,
+      left: items[itemobj].left,
       group: process.env.OWNER,
     });
 

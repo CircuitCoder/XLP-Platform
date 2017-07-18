@@ -50,16 +50,16 @@ const UserSchema = new Schema({
   },
 
   grants: {
-    admin: { type: Boolean, defualt: true },
-    message: { type: Boolean, defualt: true },
-    transfer: { type: Boolean, defualt: true },
-    sell: { type: Boolean, defualt: true },
-    publish: { type: Boolean, defualt: true },
+    admin: { type: Boolean, defualt: false },
+    message: { type: Boolean, defualt: false },
+    transfer: { type: Boolean, defualt: false },
+    sell: { type: Boolean, defualt: false },
+    publish: { type: Boolean, defualt: false },
   },
 
   title: {
     type: String,
-    defaults: '成员',
+    default: '成员',
   },
 
   avatar: {
