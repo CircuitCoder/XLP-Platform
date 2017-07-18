@@ -1,6 +1,6 @@
 const Router = require('koa-router');
 
-const { Purchase } = require('../db');
+const { Item, Purchase } = require('../db');
 
 const Util = require('../util');
 
@@ -46,6 +46,15 @@ router.post('/', async ctx => {
     else
       throw e;
   }
+
+  console.log(`\n${ctx.session.user.group.name} purchased:`);
+  const withNames = await Promise.all(items.map(i => new Promise(resolve => {
+    Item.findById(i.item).select("name").lean().exec().then(dbi => {
+      i.name = dbi.name;
+      resolve(i);
+    });
+  })));
+  console.log(withNames);
 
   return ctx.body = { success: true, owner, _id, price, balance: left };
 });
