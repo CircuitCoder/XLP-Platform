@@ -22,18 +22,25 @@ router.get('/', async ctx => {
   const skip = (page - 1) * config.item.pagelen;
   const limit = config.item.pagelen;
 
-  const items = await Item.find(criteria, {
+  let query = Item.find(criteria, {
     _id: 1,
     name: 1,
     price: 1,
     left: 1,
     'pics.0': 1,
-  })
-  .sort({ name: 1, })
-  .skip(skip)
-  .limit(limit)
-  .lean()
-  .exec();
+    score: { $meta: 'textScore' },
+  });
+
+  if(search)
+    query = query.sort({ score: { $meta: 'textScore' } });
+  else
+    query = query.sort({ name: 1 });
+
+  const items = await query
+    .skip(skip)
+    .limit(limit)
+    .lean()
+    .exec();
 
   const count = await Item.count(criteria);
 
