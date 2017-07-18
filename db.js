@@ -216,7 +216,10 @@ const Purchase = mongoose.model('Purchase', {
       ref: 'Item',
       required: true,
     },
-    qty: Number,
+    qty: {
+      type: Number,
+      requried: true,
+    },
   }],
 
   time: {

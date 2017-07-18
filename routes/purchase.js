@@ -19,9 +19,35 @@ router.post('/', async ctx => {
       || (typeof k.item !== 'string' && !(k.item instanceof String))))
     return ctx.status = 400;
 
-  const { user, _id, price } = await Util.Purchase.create(buyer, items);
+  let owner, _id, price;
 
-  return ctx.body = { user, _id, price };
+  try {
+    ({ owner, _id, price } = await Util.Purchase.create(buyer, items));
+  } catch(e) {
+    if(e.err) {
+      return ctx.body = { success: false, err: e.err, items: e.items };
+    }
+    else
+      throw e;
+  }
+
+  let left;
+
+  // Temporary
+  try{
+    const balances = await Util.Transfer.transfer(buyer, owner, price);
+    left = balances.from;
+  } catch(e) {
+    if(e.err === 'INSUFFICIENT_FUND')
+      Util.Purchase.cancel(_id);
+
+    if(e.err)
+      return ctx.body = { success: false, err: e.err, balance: e.balance };
+    else
+      throw e;
+  }
+
+  return ctx.body = { success: true, owner, _id, price, balance: left };
 });
 
 router.delete('/:id', async ctx => {

@@ -5,17 +5,17 @@ async function reserve(order) {
 
   const results = await Promise.all(order.map(i =>
     Item.findByIdAndUpdate(i.item, {
-      $add: { left: -i.qty }
-    }, { new: true }).select('price left user').lean().exec()
+      $inc: { left: -i.qty }
+    }, { new: true }).select('price left group').lean().exec()
   ));
 
-  const tot = 0;
+  let tot = 0;
   const errors = []
-  const owner = results[0].user;
+  const owner = results[0].group.toString();
   for(const [i, r] of results.entries()) {
-    if(r.user !== owner) throw { err: 'NOT_SAME_OWNER' };
+    if(r.group.toString() !== owner) throw { err: 'NOT_SAME_OWNER' };
 
-    if(r.left < 0) errors.push(order[i].item);
+    if(r.left < 0) errors.push({ _id: order[i].item, left: r.left + order[i].qty });
     else tot += order[i].qty * r.price;
   }
 
@@ -27,7 +27,7 @@ async function reserve(order) {
 async function rollback(order) {
   return await Promise.all(order.map(i =>
     Item.updateOne({ _id: i.item }, {
-      $add: { left: i.qty }
+      $inc: { left: i.qty }
     }).exec()
   ));
 }
@@ -46,9 +46,17 @@ async function create(group, order) {
 
   const errors = items.filter(i =>
     (!('price' in i) || !('left' in i))).map(i => i._id);
+
+  if(errors.length > 0)
     throw { err: 'UNABLE_TO_BUY', items: errors };
 
-  const { owner, tot } = await reserve(order);
+  let owner, tot;
+  try {
+    ({ owner, tot } = await reserve(order));
+  } catch(e) {
+    rollback(order);
+    throw e;
+  }
 
   const purchase = new Purchase({
     group: group,
@@ -59,12 +67,12 @@ async function create(group, order) {
     time: new Date(),
   });
 
-  const _id = await purchase.save();
+  const purchaseSaved = await purchase.save();
 
   return {
     price: tot,
-    user: owner,
-    _id,
+    owner,
+    _id: purchaseSaved._id,
   };
 }
 
