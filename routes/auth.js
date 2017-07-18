@@ -19,34 +19,25 @@ router.post('/', async ctx => {
   if(!username || !pass) return ctx.status = 400;
 
   const user = await User.findById(username)
-    .select("name group balance grants _id title avatar")
+    .select("name group balance grants _id title avatar pass salt")
     .populate("group", "name balance avatar")
     .exec();
 
   if(!user) return ctx.body = { success: false };
-  if(!user.validate(pass)) return ctx.body = { success: false };
+  if(!user.testPasswd(pass)) return ctx.body = { success: false };
 
   ctx.session = { user };
-  return ctx.body = { success: true, user: user.toObject() };
+
+  const uobj = user.toObject();
+  delete uobj.pass;
+  delete uobj.salt;
+  return ctx.body = { success: true, user: uobj };
 });
 
 router.delete('/', async ctx => {
   ctx.session = null;
 
   return ctx.body = { success: true };
-});
-
-router.post('/new', async ctx => {
-  const u = new User({
-    name: ctx.request.body.name,
-    _id: ctx.request.body.username,
-    isGroup: false,
-  });
-
-  await u.setPasswd(ctx.request.body.pass);
-  await u.save();
-
-  return ctx.body = 'Done';
 });
 
 module.exports = router;
